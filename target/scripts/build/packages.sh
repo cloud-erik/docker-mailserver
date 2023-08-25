@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# -eE :: exit on error (do this in functions as well)
-# -u  :: show (and exit) when using unset variables
+# -eE         :: exit on error (do this in functions as well)
+# -u          :: show (and exit) when using unset variables
 # -o pipefail :: exit on error in pipes
 set -eE -u -o pipefail
+
+# shellcheck source=/dev/null
+source /etc/os-release
 
 # shellcheck source=../helpers/log.sh
 source /usr/local/bin/helpers/log.sh
@@ -34,7 +37,7 @@ function _pre_installation_steps() {
 function _install_postfix() {
   _log 'debug' 'Installing Postfix'
 
-  _log 'warn' 'Applying workaround for Postfix bug (see https://github.com//issues/2023#issuecomment-855326403)'
+  _log 'warn' 'Applying workaround for Postfix bug (see https://github.com/docker-mailserver/docker-mailserver/issues/2023#issuecomment-855326403)'
 
   # Debians postfix package has a post-install script that expects a valid FQDN hostname to work:
   mv /bin/hostname /bin/hostname.bak
@@ -50,17 +53,13 @@ function _install_postfix() {
 function _install_packages() {
   _log 'debug' 'Installing all packages now'
 
-  declare -a ANTI_VIRUS_SPAM_PACKAGES
-  declare -a CODECS_PACKAGES MISCELLANEOUS_PACKAGES
-  declare -a POSTFIX_PACKAGES MAIL_PROGRAMS_PACKAGES
-
-  ANTI_VIRUS_SPAM_PACKAGES=(
+  local ANTI_VIRUS_SPAM_PACKAGES=(
     amavisd-new clamav clamav-daemon
     pyzor razor
     rspamd redis-server spamassassin
   )
 
-  CODECS_PACKAGES=(
+  local CODECS_PACKAGES=(
     altermime arj bzip2
     cabextract cpio file
     gzip lhasa liblz4-tool
@@ -69,7 +68,7 @@ function _install_packages() {
     unrar-free unzip xz-utils
   )
 
-  MISCELLANEOUS_PACKAGES=(
+  local MISCELLANEOUS_PACKAGES=(
     apt-transport-https bind9-dnsutils binutils bsd-mailx
     dbconfig-no-thanks dumb-init ed iproute2 iputils-ping
     libdate-manip-perl libldap-common
@@ -79,12 +78,12 @@ function _install_packages() {
     uuid whois
   )
 
-  POSTFIX_PACKAGES=(
+  local POSTFIX_PACKAGES=(
     pflogsumm postgrey postfix-ldap
     postfix-pcre postfix-policyd-spf-python postsrsd
   )
 
-  MAIL_PROGRAMS_PACKAGES=(
+  local MAIL_PROGRAMS_PACKAGES=(
     fetchmail getmail6 opendkim opendkim-tools
     opendmarc libsasl2-modules sasl2-bin
   )
@@ -98,9 +97,7 @@ function _install_packages() {
 }
 
 function _install_dovecot() {
-  declare -a DOVECOT_PACKAGES
-
-  DOVECOT_PACKAGES=(
+  local DOVECOT_PACKAGES=(
     dovecot-core dovecot-imapd
     dovecot-ldap dovecot-lmtpd dovecot-managesieved
     dovecot-pop3d dovecot-sieve dovecot-solr
@@ -159,20 +156,16 @@ function _install_fail2ban() {
   sedfile -i -r 's/^_nft_add_set = .+/_nft_add_set = <nftables> add set <table_family> <table> <addr_set> \\{ type <addr_type>\\; flags interval\\; \\}/' /etc/fail2ban/action.d/nftables.conf
 }
 
-function _remove_data_after_package_installations() {
-  _log 'debug' 'Deleting sensitive files (secrets)'
-  rm /etc/postsrsd.secret
-
-  _log 'debug' 'Deleting default logwatch cronjob'
-  rm /etc/cron.daily/00logwatch
-}
-
 function _post_installation_steps() {
   _log 'debug' 'Running post-installation steps (cleanup)'
+  _log 'trace' 'Deleting sensitive files (secrets)'
+  rm /etc/postsrsd.secret
+  _log 'trace' 'Deleting default logwatch cronjob'
+  rm /etc/cron.daily/00logwatch
+  _log 'trace' 'Removing leftovers from APT'
   apt-get "${QUIET}" clean
   rm -rf /var/lib/apt/lists/*
 
-  _log 'info' 'Finished installing packages'
 }
 
 _pre_installation_steps
@@ -180,5 +173,4 @@ _install_postfix
 _install_packages
 _install_dovecot
 _install_fail2ban
-_remove_data_after_package_installations
 _post_installation_steps
