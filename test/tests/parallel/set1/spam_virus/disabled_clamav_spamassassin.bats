@@ -29,8 +29,10 @@ function teardown_file() { _default_teardown ; }
 }
 
 @test "SA - Amavis integration should not be active" {
-  _run_in_container_bash "grep -i 'ANTI-SPAM-SA code' /var/log/mail/mail.log | grep 'NOT loaded'"
-  assert_success
+  _run_in_container grep -E 'SA version: [0-9]\.[0-9]\.[0-9]' /var/log/mail/mail.log
+  assert_failure
+  _run_in_container grep 'scanner SpamAssassin' /var/log/mail/mail.log
+  assert_failure
 }
 
 @test "SA - should not have been called" {
