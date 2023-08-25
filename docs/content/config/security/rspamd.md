@@ -10,7 +10,7 @@ If you want to have a look at the default configuration files for Rspamd that DM
 
 !!! note "AMD64 vs ARM64"
 
-    We are currently doing a best-effort installation of Rspamd for ARM64 (from the Debian backports repository for Debian 11). The current version difference as of 23rd Apr 2023: AMD64 is at version 3.5 | ARM64 is at version 3.4.
+    When running DMS on AMD64, we are using a PPA (that does not yet provide a package for ARM64) to get the very latest version. As a result, there is a version discrepancy. The current version difference as of 24th August 2023: AMD64 is at version 3.5 | ARM64 is at version 3.4.
 
 [rspamd-homepage]: https://rspamd.com/
 [dms-default-configuration]: https://github.com/docker-mailserver/docker-mailserver/tree/master/target/rspamd

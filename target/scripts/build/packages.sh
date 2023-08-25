@@ -18,7 +18,14 @@ function _pre_installation_steps() {
   apt-get "${QUIET}" update
 
   _log 'trace' 'Installing packages that are needed early'
-  apt-get "${QUIET}" install --no-install-recommends apt-utils 2>/dev/null
+  apt-get "${QUIET}" install --no-install-recommends apt-utils ca-certificates curl gnupg 2>/dev/null
+
+  if [[ $(uname --machine) == 'x86_64' ]]; then
+    _log 'trace' 'Adding Rspamd PPA'
+    curl -sSfL https://rspamd.com/apt-stable/gpg.key | gpg --dearmor >/etc/apt/trusted.gpg.d/rspamd.gpg
+    echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/rspamd.gpg] http://rspamd.com/apt-stable/ ${VERSION_CODENAME} main" >/etc/apt/sources.list.d/rspamd.list
+    apt-get "${QUIET}" update
+  fi
 
   _log 'trace' 'Upgrading packages'
   apt-get "${QUIET}" upgrade
@@ -49,7 +56,8 @@ function _install_packages() {
 
   ANTI_VIRUS_SPAM_PACKAGES=(
     amavisd-new clamav clamav-daemon
-    pyzor razor spamassassin
+    pyzor razor
+    rspamd redis-server spamassassin
   )
 
   CODECS_PACKAGES=(
@@ -63,8 +71,7 @@ function _install_packages() {
 
   MISCELLANEOUS_PACKAGES=(
     apt-transport-https bind9-dnsutils binutils bsd-mailx
-    ca-certificates curl dbconfig-no-thanks
-    dumb-init ed gnupg iproute2 iputils-ping
+    dbconfig-no-thanks dumb-init ed iproute2 iputils-ping
     libdate-manip-perl libldap-common
     libmail-spf-perl libnet-dns-perl
     locales logwatch netcat-openbsd
@@ -114,34 +121,6 @@ function _install_dovecot() {
 
   # dependency for fts_xapian
   apt-get "${QUIET}" --no-install-recommends install libxapian30
-}
-
-function _install_rspamd() {
-  _log 'trace' 'Adding Rspamd package signatures'
-  local DEB_FILE='/etc/apt/sources.list.d/rspamd.list'
-  local RSPAMD_PACKAGE_NAME
-
-  # We try getting the most recent version of Rspamd for aarch64 (from an official source, which
-  # is the backports repository). The version for aarch64 is 3.2; the most recent version for amd64
-  # that we get with the official PPA is 3.4.
-  #
-  # Not removing it later is fine as you have to explicitly opt into installing a backports package
-  # which is not something you could be doing by accident.
-  if [[ $(uname --machine) == 'aarch64' ]]; then
-    echo '# Official Rspamd PPA does not support aarch64, so we use the Bullseye backports' >"${DEB_FILE}"
-    echo 'deb [arch=arm64] http://deb.debian.org/debian bullseye-backports main' >>"${DEB_FILE}"
-    RSPAMD_PACKAGE_NAME='rspamd/bullseye-backports'
-  else
-    curl -sSfL https://rspamd.com/apt-stable/gpg.key | gpg --dearmor >/etc/apt/trusted.gpg.d/rspamd.gpg
-    local URL='[arch=amd64 signed-by=/etc/apt/trusted.gpg.d/rspamd.gpg] http://rspamd.com/apt-stable/ bullseye main'
-    echo "deb ${URL}" >"${DEB_FILE}"
-    echo "deb-src ${URL}" >>"${DEB_FILE}"
-    RSPAMD_PACKAGE_NAME='rspamd'
-  fi
-
-  _log 'debug' 'Installing Rspamd'
-  apt-get "${QUIET}" update
-  apt-get "${QUIET}" --no-install-recommends install "${RSPAMD_PACKAGE_NAME}" 'redis-server'
 }
 
 function _install_fail2ban() {
@@ -200,7 +179,6 @@ _pre_installation_steps
 _install_postfix
 _install_packages
 _install_dovecot
-_install_rspamd
 _install_fail2ban
 _remove_data_after_package_installations
 _post_installation_steps
