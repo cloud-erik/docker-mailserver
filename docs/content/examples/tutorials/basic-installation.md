@@ -57,7 +57,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     environment:
       - ACCOUNT_PROVISIONER=LDAP
-      - LDAP_SERVER_HOST=ldap # your ldap container/IP/ServerName
+      - LDAP_SERVER_HOST=ldap://ldap.example.com # your ldap container/IP/ServerName
       - LDAP_SEARCH_BASE=ou=people,dc=localhost,dc=localdomain
       - LDAP_BIND_DN=cn=admin,dc=localhost,dc=localdomain
       - LDAP_BIND_PW=admin
