@@ -36,7 +36,7 @@ Those variables contain the LDAP lookup filters for postfix, using `%s` as the p
     ```yaml
     - LDAP_START_TLS=yes
     - ACCOUNT_PROVISIONER=LDAP
-    - LDAP_SERVER_HOST=ldap.example.org
+    - LDAP_SERVER_HOST=ldap://ldap.example.org
     - LDAP_SEARCH_BASE=dc=example,dc=org"
     - LDAP_BIND_DN=cn=admin,dc=example,dc=org
     - LDAP_BIND_PW=mypassword
@@ -215,7 +215,7 @@ The changes on the configurations necessary to work with Active Directory (**onl
 
           # >>> Postfix LDAP Integration
           - ACCOUNT_PROVISIONER=LDAP
-          - LDAP_SERVER_HOST=ldap.example.org
+          - LDAP_SERVER_HOST=ldap://ldap.example.org
           - LDAP_BIND_DN=cn=admin,ou=users,dc=example,dc=org
           - LDAP_BIND_PW=mypassword
           - LDAP_SEARCH_BASE=dc=example,dc=org
@@ -283,7 +283,7 @@ The changes on the configurations necessary to work with Active Directory (**onl
 
           # >>> Postfix Ldap Integration
           - ACCOUNT_PROVISIONER=LDAP
-          - LDAP_SERVER_HOST=<yourLdapContainer/yourLdapServer>
+          - LDAP_SERVER_HOST=ldap://<yourLdapContainer/yourLdapServer>
           - LDAP_SEARCH_BASE=dc=mydomain,dc=loc
           - LDAP_BIND_DN=cn=Administrator,cn=Users,dc=mydomain,dc=loc
           - LDAP_BIND_PW=mypassword
