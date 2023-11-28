@@ -32,14 +32,14 @@ If you want to send emails from outside the mail server you have to authenticate
 ```env
 ACCOUNT_PROVISIONER=LDAP
 LDAP_START_TLS=yes
-LDAP_SERVER_HOST=ldap.example.org
+LDAP_SERVER_HOST=ldap://ldap.example.org
 LDAP_SEARCH_BASE=ou=users,dc=example,dc=org
 LDAP_BIND_DN=cn=mailserver,dc=example,dc=org
 LDAP_BIND_PW=pass1234
 
 ENABLE_SASLAUTHD=1
 SASLAUTHD_MECHANISMS=ldap
-SASLAUTHD_LDAP_SERVER=ldap.example.org
+SASLAUTHD_LDAP_SERVER=ldap://ldap.example.org
 SASLAUTHD_LDAP_START_TLS=yes
 SASLAUTHD_LDAP_BIND_DN=cn=mailserver,dc=example,dc=org
 SASLAUTHD_LDAP_PASSWORD=pass1234
